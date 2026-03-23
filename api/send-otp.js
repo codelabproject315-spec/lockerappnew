@@ -1,11 +1,20 @@
 const { DynamoDBClient, PutItemCommand } = require('@aws-sdk/client-dynamodb');
 const { marshall } = require('@aws-sdk/util-dynamodb');
+const nodemailer = require('nodemailer');
 
 const client = new DynamoDBClient({
   region: process.env.AWS_DEFAULT_REGION,
   credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+});
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS, // Googleアプリパスワード（16桁）
   },
 });
 
@@ -45,40 +54,27 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: 'OTP保存失敗' });
   }
 
-  // Resendでメール送信
+  // GmailでOTPメール送信
   try {
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: 'ロッカー管理システム <onboarding@resend.dev>',
-        to: email,
-        subject: '【ロッカー管理システム】認証コード',
-        html: `
-          <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
-            <h2 style="color: #1565c0;">認証コード</h2>
-            <p>以下のコードを入力してください。有効期限は<strong>5分</strong>です。</p>
-            <div style="font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #1565c0; background: #f0f4ff; padding: 20px; text-align: center; border-radius: 8px; margin: 24px 0;">
-              ${otp}
-            </div>
-            <p style="color: #888; font-size: 12px;">このメールに心当たりがない場合は無視してください。</p>
+    await transporter.sendMail({
+      from: `"ロッカー管理システム" <${process.env.GMAIL_USER}>`,
+      to: email,
+      subject: '【ロッカー管理システム】認証コード',
+      html: `
+        <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
+          <h2 style="color: #1565c0;">認証コード</h2>
+          <p>以下のコードを入力してください。有効期限は<strong>5分</strong>です。</p>
+          <div style="font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #1565c0; background: #f0f4ff; padding: 20px; text-align: center; border-radius: 8px; margin: 24px 0;">
+            ${otp}
           </div>
-        `,
-      }),
+          <p style="color: #888; font-size: 12px;">このメールに心当たりがない場合は無視してください。</p>
+        </div>
+      `,
     });
-
-    if (!response.ok) {
-      const err = await response.json();
-      console.error('Resend error:', err);
-      return res.status(500).json({ error: 'メール送信失敗' });
-    }
 
     res.status(200).json({ success: true });
   } catch (err) {
-    console.error('Resend fetch error:', err);
-    res.status(500).json({ error: 'メール送信失敗' });
+    console.error('Gmail send error:', err);
+    res.status(500).json({ error: 'メール送信失敗', detail: err.message });
   }
 };
