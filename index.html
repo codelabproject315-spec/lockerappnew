@@ -460,22 +460,30 @@
 
       <!-- Step 1: 利用者メール入力 or 管理者選択 -->
       <div id="login-step1">
-        <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px">ログイン方法を選択してください</p>
+        <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px">学校のメールアドレスで認証してください</p>
         <div id="alert-login" class="alert" style="text-align:left"></div>
 
         <div class="form-group" style="text-align:left">
-          <label>利用者メールアドレス <span style="color:#888;font-size:11px">(@sit.ac.jp)</span></label>
-          <input type="email" id="user-email" placeholder="student@sit.ac.jp" onkeydown="if(event.key==='Enter')sendOtp()">
+          <label>メールアドレス</label>
+          <input type="email" id="user-email" placeholder="メールアドレスを入力"
+            style="font-size:15px;padding:14px;width:100%;"
+            onkeydown="if(event.key==='Enter')sendOtp()">
         </div>
-        <button class="btn btn-primary" style="color:#fff;margin-bottom:16px" onclick="sendOtp()" id="btn-send-otp">🙋 認証コードを送信</button>
+        <button class="btn btn-primary" style="color:#fff;padding:14px;font-size:15px;margin-bottom:20px" onclick="sendOtp()" id="btn-send-otp">🙋 認証コードを送信</button>
 
-        <hr style="border:none;border-top:1px solid var(--border);margin-bottom:16px">
-
-        <div class="form-group" style="text-align:left">
-          <label>管理者パスワード</label>
-          <input type="password" id="admin-pw" placeholder="パスワードを入力" onkeydown="if(event.key==='Enter')adminLogin()">
+        <!-- 管理者ログイン折りたたみ -->
+        <div style="text-align:center">
+          <button onclick="toggleAdminLogin()" style="background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;text-decoration:underline;padding:4px">
+            管理者の方はこちら
+          </button>
         </div>
-        <button class="btn btn-secondary" onclick="adminLogin()">⚙️ 管理者としてログイン</button>
+        <div id="admin-login-section" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
+          <div class="form-group" style="text-align:left">
+            <label>管理者パスワード</label>
+            <input type="password" id="admin-pw" placeholder="パスワードを入力" onkeydown="if(event.key==='Enter')adminLogin()">
+          </div>
+          <button class="btn btn-secondary" onclick="adminLogin()">⚙️ 管理者としてログイン</button>
+        </div>
       </div>
 
       <!-- Step 2: OTP入力 -->
@@ -729,6 +737,11 @@ function backToStep1() {
   document.getElementById('step2-dot').style.background = 'var(--border)';
   document.getElementById('otp-input').value = '';
   otpEmail = '';
+}
+
+function toggleAdminLogin() {
+  const section = document.getElementById('admin-login-section');
+  section.style.display = section.style.display === 'none' ? 'block' : 'none';
 }
 
 function logout() {
