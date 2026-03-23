@@ -392,27 +392,43 @@
     .dot.inuse { background: var(--danger); }
 
     /* Login screen */
-    .login-screen-wrap {
+    #screen-login {
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 24px 16px;
+      overflow-y: auto;
+    }
+
+    .login-screen-wrap {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .login-screen-card {
-      background: var(--surface);
+      background: rgba(255,255,255,0.92);
       border: 1px solid var(--border);
       border-radius: 20px;
       padding: 40px 36px;
       width: 100%;
       max-width: 400px;
       text-align: center;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
     }
 
     .login-screen-card .form-group {
       text-align: left;
+    }
+
+    .login-screen-card .btn-primary {
+      color: #fff;
+    }
+
+    .login-screen-card .btn-secondary {
+      background: rgba(255,255,255,0.9);
     }
 
     /* Responsive */
@@ -432,19 +448,19 @@
   <div class="login-screen-wrap">
     <div class="login-screen-card">
       <div class="badge" style="margin-bottom:16px">Locker Management</div>
-      <h1 style="font-size:clamp(22px,4vw,32px);font-weight:700;margin-bottom:8px">ロッカー管理<span style="color:var(--accent)">システム</span> 🔐</h1>
-      <p style="color:var(--text-muted);font-size:13px;margin-bottom:32px">ログイン方法を選択してください</p>
-      <button class="btn btn-primary" style="margin-bottom:12px" onclick="goUser()">🙋 利用者としてログイン</button>
-      <div style="position:relative;text-align:center;margin:8px 0 16px">
-        <span style="font-size:12px;color:var(--text-muted);background:rgba(255,255,255,0.7);padding:0 10px;position:relative;z-index:1">または</span>
-        <div style="position:absolute;top:50%;left:0;right:0;height:1px;background:var(--border);z-index:0"></div>
-      </div>
-      <div id="alert-login" class="alert"></div>
-      <div class="form-group">
+      <h1 style="font-size:clamp(20px,4vw,30px);font-weight:700;margin-bottom:8px">ロッカー管理<span style="color:var(--accent)">システム</span> 🔐</h1>
+      <p style="color:var(--text-muted);font-size:13px;margin-bottom:28px">ログイン方法を選択してください</p>
+
+      <button class="btn btn-primary" style="margin-bottom:20px;color:#fff;font-size:15px;padding:14px" onclick="goUser()">🙋 利用者としてログイン</button>
+
+      <hr style="border:none;border-top:1px solid var(--border);margin-bottom:20px">
+
+      <div id="alert-login" class="alert" style="text-align:left"></div>
+      <div class="form-group" style="text-align:left">
         <label>管理者パスワード</label>
         <input type="password" id="admin-pw" placeholder="パスワードを入力" onkeydown="if(event.key==='Enter')adminLogin()">
       </div>
-      <button class="btn btn-secondary" onclick="adminLogin()">⚙️ 管理者としてログイン</button>
+      <button class="btn" style="background:#1565c0;color:#fff;font-size:14px;padding:12px" onclick="adminLogin()">⚙️ 管理者としてログイン</button>
     </div>
   </div>
 </div>
