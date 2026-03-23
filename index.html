@@ -8,15 +8,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0f1117;
-      --surface: rgba(255,255,255,0.05);
-      --surface-hover: rgba(255,255,255,0.09);
-      --border: rgba(255,255,255,0.1);
-      --accent: #4fc3f7;
-      --accent2: #81c784;
-      --danger: #ef5350;
-      --text: #f0f4f8;
-      --text-muted: #8896a5;
+      --surface: rgba(255,255,255,0.88);
+      --surface-hover: rgba(255,255,255,0.97);
+      --border: rgba(0,0,0,0.1);
+      --accent: #1565c0;
+      --accent2: #2e7d32;
+      --danger: #c62828;
+      --text: #1a2332;
+      --text-muted: #5a6a7a;
       --radius: 12px;
     }
 
@@ -24,18 +23,16 @@
 
     body {
       font-family: 'Noto Sans JP', sans-serif;
-      background: var(--bg);
-      color: var(--text);
       min-height: 100vh;
       overflow-x: hidden;
+      background: url('https://raw.githubusercontent.com/codelabproject315-spec/locker-app/main/about01.jpg') center/cover fixed no-repeat;
+      color: var(--text);
     }
 
-    /* Hero background */
     .hero-bg {
       position: fixed;
       inset: 0;
-      background: url('https://raw.githubusercontent.com/codelabproject315-spec/locker-app/main/about01.jpg') center/cover no-repeat;
-      opacity: 0.12;
+      background: rgba(210, 230, 255, 0.2);
       z-index: 0;
     }
 
@@ -102,9 +99,9 @@
       line-height: 1;
     }
 
-    .stat-card .num.available { color: var(--accent2); }
-    .stat-card .num.inuse { color: var(--danger); }
-    .stat-card .num.total { color: var(--accent); }
+    .stat-card .num.available { color: #2e7d32; }
+    .stat-card .num.inuse { color: #c62828; }
+    .stat-card .num.total { color: #1565c0; }
 
     .stat-card .label {
       font-size: 11px;
@@ -315,7 +312,7 @@
 
     .badge-available {
       background: rgba(129,199,132,0.2);
-      color: var(--accent2);
+      color: #2e7d32;
       padding: 3px 10px;
       border-radius: 99px;
       font-size: 11px;
@@ -323,8 +320,8 @@
     }
 
     .badge-inuse {
-      background: rgba(239,83,80,0.2);
-      color: var(--danger);
+      background: rgba(198,40,40,0.12);
+      color: #c62828;
       padding: 3px 10px;
       border-radius: 99px;
       font-size: 11px;
