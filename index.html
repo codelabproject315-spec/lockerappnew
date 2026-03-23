@@ -451,18 +451,46 @@
     <div class="login-screen-card">
       <div class="badge" style="margin-bottom:16px">Locker Management</div>
       <h1 style="font-size:clamp(20px,4vw,30px);font-weight:700;margin-bottom:8px">ロッカー管理<span style="color:var(--accent)">システム</span> 🔐</h1>
-      <p style="color:var(--text-muted);font-size:13px;margin-bottom:28px">ログイン方法を選択してください</p>
 
-      <button class="btn btn-primary" style="margin-bottom:20px;color:#fff;font-size:15px;padding:14px" onclick="goUser()">🙋 利用者としてログイン</button>
-
-      <hr style="border:none;border-top:1px solid var(--border);margin-bottom:20px">
-
-      <div id="alert-login" class="alert" style="text-align:left"></div>
-      <div class="form-group" style="text-align:left">
-        <label>管理者パスワード</label>
-        <input type="password" id="admin-pw" placeholder="パスワードを入力" onkeydown="if(event.key==='Enter')adminLogin()">
+      <!-- Step indicator -->
+      <div id="login-steps" style="display:flex;justify-content:center;gap:8px;margin-bottom:24px">
+        <div id="step1-dot" style="width:8px;height:8px;border-radius:50%;background:var(--accent)"></div>
+        <div id="step2-dot" style="width:8px;height:8px;border-radius:50%;background:var(--border)"></div>
       </div>
-      <button class="btn" style="background:#1565c0;color:#fff;font-size:14px;padding:12px" onclick="adminLogin()">⚙️ 管理者としてログイン</button>
+
+      <!-- Step 1: 利用者メール入力 or 管理者選択 -->
+      <div id="login-step1">
+        <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px">ログイン方法を選択してください</p>
+        <div id="alert-login" class="alert" style="text-align:left"></div>
+
+        <div class="form-group" style="text-align:left">
+          <label>利用者メールアドレス <span style="color:#888;font-size:11px">(@sit.ac.jp)</span></label>
+          <input type="email" id="user-email" placeholder="student@sit.ac.jp" onkeydown="if(event.key==='Enter')sendOtp()">
+        </div>
+        <button class="btn btn-primary" style="color:#fff;margin-bottom:16px" onclick="sendOtp()" id="btn-send-otp">🙋 認証コードを送信</button>
+
+        <hr style="border:none;border-top:1px solid var(--border);margin-bottom:16px">
+
+        <div class="form-group" style="text-align:left">
+          <label>管理者パスワード</label>
+          <input type="password" id="admin-pw" placeholder="パスワードを入力" onkeydown="if(event.key==='Enter')adminLogin()">
+        </div>
+        <button class="btn btn-secondary" onclick="adminLogin()">⚙️ 管理者としてログイン</button>
+      </div>
+
+      <!-- Step 2: OTP入力 -->
+      <div id="login-step2" style="display:none">
+        <p style="color:var(--text-muted);font-size:13px;margin-bottom:4px">認証コードを入力してください</p>
+        <p id="otp-email-label" style="color:var(--accent);font-size:13px;font-weight:700;margin-bottom:20px"></p>
+        <div id="alert-otp" class="alert" style="text-align:left"></div>
+        <div class="form-group" style="text-align:left">
+          <label>認証コード（6桁）</label>
+          <input type="text" id="otp-input" placeholder="123456" maxlength="6" style="font-size:24px;letter-spacing:8px;text-align:center" onkeydown="if(event.key==='Enter')verifyOtp()">
+        </div>
+        <button class="btn btn-primary" style="color:#fff;margin-bottom:12px" onclick="verifyOtp()" id="btn-verify-otp">✅ 認証する</button>
+        <button class="btn btn-secondary" style="font-size:12px" onclick="backToStep1()">← 戻る / 再送信</button>
+      </div>
+
     </div>
   </div>
 </div>
@@ -614,6 +642,7 @@
 let lockers = [];
 let adminAction = 'rent';
 let currentScreen = 'login'; // 'login' | 'user' | 'admin'
+let otpEmail = '';
 
 // =====================
 // Screen switching
@@ -628,6 +657,78 @@ function showScreen(name) {
 
 function goUser() {
   showScreen('user');
+}
+
+// =====================
+// OTP flow
+// =====================
+async function sendOtp() {
+  const email = document.getElementById('user-email').value.trim();
+  if (!email) return showAlert('alert-login', 'error', 'メールアドレスを入力してください');
+
+  const btn = document.getElementById('btn-send-otp');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>送信中...';
+
+  try {
+    const res = await fetch('/api/send-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      showAlert('alert-login', 'error', data.error || '送信失敗');
+    } else {
+      otpEmail = email;
+      document.getElementById('otp-email-label').textContent = email;
+      document.getElementById('login-step1').style.display = 'none';
+      document.getElementById('login-step2').style.display = 'block';
+      document.getElementById('step2-dot').style.background = 'var(--accent)';
+      document.getElementById('otp-input').focus();
+    }
+  } catch (e) {
+    showAlert('alert-login', 'error', '通信エラーが発生しました');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '🙋 認証コードを送信';
+}
+
+async function verifyOtp() {
+  const otp = document.getElementById('otp-input').value.trim();
+  if (!otp) return showAlert('alert-otp', 'error', 'コードを入力してください');
+
+  const btn = document.getElementById('btn-verify-otp');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>認証中...';
+
+  try {
+    const res = await fetch('/api/verify-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: otpEmail, otp }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      showAlert('alert-otp', 'error', data.error || '認証失敗');
+    } else {
+      showScreen('user');
+    }
+  } catch (e) {
+    showAlert('alert-otp', 'error', '通信エラーが発生しました');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '✅ 認証する';
+}
+
+function backToStep1() {
+  document.getElementById('login-step1').style.display = 'block';
+  document.getElementById('login-step2').style.display = 'none';
+  document.getElementById('step2-dot').style.background = 'var(--border)';
+  document.getElementById('otp-input').value = '';
+  otpEmail = '';
 }
 
 function logout() {
