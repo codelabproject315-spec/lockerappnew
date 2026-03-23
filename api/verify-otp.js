@@ -9,6 +9,13 @@ const client = new DynamoDBClient({
   },
 });
 
+// 管理者メールリスト（カンマ区切りで複数指定可能）
+// 例: ADMIN_EMAILS=admin@sit.ac.jp,teacher@sit.ac.jp
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '')
+  .split(',')
+  .map(e => e.trim().toLowerCase())
+  .filter(Boolean);
+
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -54,7 +61,10 @@ module.exports = async (req, res) => {
       Key: marshall({ email }),
     }));
 
-    res.status(200).json({ success: true, email });
+    // 管理者判定（サーバー側で行う）
+    const isAdmin = ADMIN_EMAILS.includes(email.toLowerCase());
+
+    res.status(200).json({ success: true, email, isAdmin });
   } catch (err) {
     console.error('DynamoDB error:', err);
     res.status(500).json({ error: '認証処理失敗' });
