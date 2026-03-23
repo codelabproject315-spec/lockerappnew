@@ -471,19 +471,7 @@
         </div>
         <button class="btn btn-primary" style="color:#fff;padding:14px;font-size:15px;margin-bottom:20px" onclick="sendOtp()" id="btn-send-otp">🙋 認証コードを送信</button>
 
-        <!-- 管理者ログイン折りたたみ -->
-        <div style="text-align:center">
-          <button onclick="toggleAdminLogin()" style="background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;text-decoration:underline;padding:4px">
-            管理者の方はこちら
-          </button>
-        </div>
-        <div id="admin-login-section" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
-          <div class="form-group" style="text-align:left">
-            <label>管理者パスワード</label>
-            <input type="password" id="admin-pw" placeholder="パスワードを入力" onkeydown="if(event.key==='Enter')adminLogin()">
-          </div>
-          <button class="btn btn-secondary" onclick="adminLogin()">⚙️ 管理者としてログイン</button>
-        </div>
+        <p style="color:var(--text-muted);font-size:11px;margin-top:8px">管理者アカウントは自動的に判定されます</p>
       </div>
 
       <!-- Step 2: OTP入力 -->
@@ -721,7 +709,9 @@ async function verifyOtp() {
     if (!res.ok) {
       showAlert('alert-otp', 'error', data.error || '認証失敗');
     } else {
-      showScreen('user');
+      // サーバーの判定結果で画面を振り分け
+      showScreen(data.isAdmin ? 'admin' : 'user');
+      if (data.isAdmin) setAdminAction('rent');
     }
   } catch (e) {
     showAlert('alert-otp', 'error', '通信エラーが発生しました');
@@ -739,13 +729,7 @@ function backToStep1() {
   otpEmail = '';
 }
 
-function toggleAdminLogin() {
-  const section = document.getElementById('admin-login-section');
-  section.style.display = section.style.display === 'none' ? 'block' : 'none';
-}
-
 function logout() {
-  document.getElementById('admin-pw').value = '';
   showScreen('login');
 }
 
@@ -886,18 +870,8 @@ async function rentLocker() {
 }
 
 // =====================
-// Admin login
+// Admin actions
 // =====================
-function adminLogin() {
-  const pw = document.getElementById('admin-pw').value;
-  if (pw === 'admin123') {
-    showScreen('admin');
-    setAdminAction('rent');
-  } else {
-    showAlert('alert-login', 'error', 'パスワードが間違っています');
-  }
-}
-
 function setAdminAction(action) {
   adminAction = action;
   document.getElementById('admin-rent-form').style.display = action === 'rent' ? 'block' : 'none';
