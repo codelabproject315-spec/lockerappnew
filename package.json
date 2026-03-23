@@ -4,6 +4,7 @@
   "description": "ロッカー管理システム",
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.0.0",
-    "@aws-sdk/util-dynamodb": "^3.0.0"
+    "@aws-sdk/util-dynamodb": "^3.0.0",
+    "nodemailer": "^6.9.0"
   }
 }
