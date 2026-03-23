@@ -391,10 +391,35 @@
     .dot.available { background: var(--accent2); }
     .dot.inuse { background: var(--danger); }
 
+    /* Login screen */
+    .login-screen-wrap {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+
+    .login-screen-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    }
+
+    .login-screen-card .form-group {
+      text-align: left;
+    }
+
     /* Responsive */
     @media (max-width: 480px) {
       .card { padding: 16px; }
       .stat-card .num { font-size: 22px; }
+      .login-screen-card { padding: 28px 20px; }
     }
   </style>
 </head>
@@ -402,6 +427,30 @@
 
 <div class="hero-bg"></div>
 
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="screen-login">
+  <div class="login-screen-wrap">
+    <div class="login-screen-card">
+      <div class="badge" style="margin-bottom:16px">Locker Management</div>
+      <h1 style="font-size:clamp(22px,4vw,32px);font-weight:700;margin-bottom:8px">ロッカー管理<span style="color:var(--accent)">システム</span> 🔐</h1>
+      <p style="color:var(--text-muted);font-size:13px;margin-bottom:32px">ログイン方法を選択してください</p>
+      <button class="btn btn-primary" style="margin-bottom:12px" onclick="goUser()">🙋 利用者としてログイン</button>
+      <div style="position:relative;text-align:center;margin:8px 0 16px">
+        <span style="font-size:12px;color:var(--text-muted);background:rgba(255,255,255,0.7);padding:0 10px;position:relative;z-index:1">または</span>
+        <div style="position:absolute;top:50%;left:0;right:0;height:1px;background:var(--border);z-index:0"></div>
+      </div>
+      <div id="alert-login" class="alert"></div>
+      <div class="form-group">
+        <label>管理者パスワード</label>
+        <input type="password" id="admin-pw" placeholder="パスワードを入力" onkeydown="if(event.key==='Enter')adminLogin()">
+      </div>
+      <button class="btn btn-secondary" onclick="adminLogin()">⚙️ 管理者としてログイン</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== USER SCREEN ===== -->
+<div id="screen-user" style="display:none">
 <div class="wrapper">
   <header>
     <div class="badge">Locker Management</div>
@@ -424,14 +473,9 @@
     </div>
   </div>
 
-  <!-- Tabs -->
-  <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('user')">🙋 利用者</button>
-    <button class="tab-btn" onclick="switchTab('admin')">⚙️ 管理者</button>
+  <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+    <button class="btn btn-secondary" style="width:auto;padding:8px 16px;font-size:13px" onclick="logout()">← ログアウト</button>
   </div>
-
-  <!-- User Tab -->
-  <div class="tab-content active" id="tab-user">
     <div class="card">
       <h2>🔑 利用開始（登録）</h2>
       <div id="alert-user" class="alert"></div>
@@ -460,104 +504,117 @@
     </div>
   </div>
 
-  <!-- Admin Tab -->
-  <div class="tab-content" id="tab-admin">
+</div><!-- end wrapper -->
+</div><!-- end screen-user -->
 
-    <!-- Login -->
-    <div id="admin-login">
-      <div class="card login-wrap">
-        <h2>🔒 管理者ログイン</h2>
-        <div id="alert-login" class="alert"></div>
-        <div class="form-group">
-          <label>パスワード</label>
-          <input type="password" id="admin-pw" placeholder="パスワードを入力">
-        </div>
-        <button class="btn btn-primary" onclick="adminLogin()">ログイン</button>
-      </div>
+<!-- ===== ADMIN SCREEN ===== -->
+<div id="screen-admin" style="display:none">
+<div class="wrapper">
+  <header>
+    <div class="badge">Locker Management — Admin</div>
+    <h1>管理者<span>パネル</span> ⚙️</h1>
+  </header>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-card">
+      <div class="num total" id="stat-total-admin">—</div>
+      <div class="label">総数</div>
+    </div>
+    <div class="stat-card">
+      <div class="num available" id="stat-available-admin">—</div>
+      <div class="label">空き</div>
+    </div>
+    <div class="stat-card">
+      <div class="num inuse" id="stat-inuse-admin">—</div>
+      <div class="label">使用中</div>
+    </div>
+  </div>
+
+  <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+    <button class="btn btn-secondary" style="width:auto;padding:8px 16px;font-size:13px" onclick="logout()">← ログアウト</button>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <h2 style="margin:0">✅ 管理者メニュー</h2>
     </div>
 
-    <!-- Admin Panel -->
-    <div id="admin-panel" style="display:none">
-      <div class="card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-          <h2 style="margin:0">✅ 管理者メニュー</h2>
-          <button class="btn btn-secondary" style="width:auto;padding:8px 16px" onclick="adminLogout()">ログアウト</button>
-        </div>
-
-        <!-- Action selector -->
-        <div class="action-row">
-          <button class="btn btn-secondary" id="action-rent-btn" onclick="setAdminAction('rent')">代理貸出</button>
-          <button class="btn btn-secondary" id="action-return-btn" onclick="setAdminAction('return')">強制返却</button>
-        </div>
-
-        <!-- 代理貸出 form -->
-        <div id="admin-rent-form">
-          <div id="alert-admin-rent" class="alert"></div>
-          <div class="form-group">
-            <label>空きロッカー</label>
-            <select id="a-locker"></select>
-          </div>
-          <div class="form-group">
-            <label>学籍番号</label>
-            <input type="text" id="a-sid" placeholder="例: 2403036">
-          </div>
-          <div class="form-group">
-            <label>氏名</label>
-            <input type="text" id="a-name" placeholder="例: 埼玉太郎">
-          </div>
-          <button class="btn btn-primary" onclick="adminRent()">登録</button>
-        </div>
-
-        <!-- 強制返却 form -->
-        <div id="admin-return-form" style="display:none">
-          <div id="alert-admin-return" class="alert"></div>
-          <div class="form-group">
-            <label>使用中のロッカー</label>
-            <select id="a-ret-locker"></select>
-          </div>
-          <button class="btn btn-danger" onclick="adminReturn()">強制返却</button>
-        </div>
-      </div>
-
-      <!-- Table -->
-      <div class="card">
-        <h2>📋 利用状況一覧</h2>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>ロッカー番号</th>
-                <th>状態</th>
-                <th>学籍番号</th>
-                <th>氏名</th>
-              </tr>
-            </thead>
-            <tbody id="admin-table"></tbody>
-          </table>
-        </div>
-        <a class="csv-btn" id="csv-download" download="lockers.csv">⬇ CSVダウンロード</a>
-      </div>
+    <div class="action-row">
+      <button class="btn btn-secondary" id="action-rent-btn" onclick="setAdminAction('rent')">代理貸出</button>
+      <button class="btn btn-secondary" id="action-return-btn" onclick="setAdminAction('return')">強制返却</button>
     </div>
 
+    <div id="admin-rent-form">
+      <div id="alert-admin-rent" class="alert"></div>
+      <div class="form-group">
+        <label>空きロッカー</label>
+        <select id="a-locker"></select>
+      </div>
+      <div class="form-group">
+        <label>学籍番号</label>
+        <input type="text" id="a-sid" placeholder="例: 2403036">
+      </div>
+      <div class="form-group">
+        <label>氏名</label>
+        <input type="text" id="a-name" placeholder="例: 埼玉太郎">
+      </div>
+      <button class="btn btn-primary" onclick="adminRent()">登録</button>
+    </div>
+
+    <div id="admin-return-form" style="display:none">
+      <div id="alert-admin-return" class="alert"></div>
+      <div class="form-group">
+        <label>使用中のロッカー</label>
+        <select id="a-ret-locker"></select>
+      </div>
+      <button class="btn btn-danger" onclick="adminReturn()">強制返却</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📋 利用状況一覧</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ロッカー番号</th>
+            <th>状態</th>
+            <th>学籍番号</th>
+            <th>氏名</th>
+          </tr>
+        </thead>
+        <tbody id="admin-table"></tbody>
+      </table>
+    </div>
+    <a class="csv-btn" id="csv-download" download="lockers.csv">⬇ CSVダウンロード</a>
   </div>
 </div>
+</div><!-- end screen-admin -->
 
 <script>
-// =====================
-// State
-// =====================
 let lockers = [];
 let adminAction = 'rent';
+let currentScreen = 'login'; // 'login' | 'user' | 'admin'
 
 // =====================
-// Tab
+// Screen switching
 // =====================
-function switchTab(tab) {
-  document.querySelectorAll('.tab-btn').forEach((b, i) => {
-    b.classList.toggle('active', (i === 0 && tab === 'user') || (i === 1 && tab === 'admin'));
-  });
-  document.getElementById('tab-user').classList.toggle('active', tab === 'user');
-  document.getElementById('tab-admin').classList.toggle('active', tab === 'admin');
+function showScreen(name) {
+  currentScreen = name;
+  document.getElementById('screen-login').style.display = name === 'login' ? 'block' : 'none';
+  document.getElementById('screen-user').style.display  = name === 'user'  ? 'block' : 'none';
+  document.getElementById('screen-admin').style.display = name === 'admin' ? 'block' : 'none';
+  if (name !== 'login') fetchLockers();
+}
+
+function goUser() {
+  showScreen('user');
+}
+
+function logout() {
+  document.getElementById('admin-pw').value = '';
+  showScreen('login');
 }
 
 // =====================
@@ -599,36 +656,48 @@ function renderAll() {
   const available = lockers.filter(l => l.status === 'available');
   const inuse = lockers.filter(l => l.status === 'in_use');
 
-  document.getElementById('stat-total').textContent = lockers.length;
-  document.getElementById('stat-available').textContent = available.length;
-  document.getElementById('stat-inuse').textContent = inuse.length;
+  // User stats
+  const st = document.getElementById('stat-total');
+  const sa = document.getElementById('stat-available');
+  const si = document.getElementById('stat-inuse');
+  if (st) st.textContent = lockers.length;
+  if (sa) sa.textContent = available.length;
+  if (si) si.textContent = inuse.length;
+
+  // Admin stats
+  const sta = document.getElementById('stat-total-admin');
+  const saa = document.getElementById('stat-available-admin');
+  const sia = document.getElementById('stat-inuse-admin');
+  if (sta) sta.textContent = lockers.length;
+  if (saa) saa.textContent = available.length;
+  if (sia) sia.textContent = inuse.length;
 
   // User locker select
   const uLocker = document.getElementById('u-locker');
-  uLocker.innerHTML = available.length === 0
+  if (uLocker) uLocker.innerHTML = available.length === 0
     ? '<option>空きロッカーなし</option>'
     : available.map(l => `<option value="${l.locker_id}">${l.locker_id}</option>`).join('');
 
   // Admin selects
   const aLocker = document.getElementById('a-locker');
-  aLocker.innerHTML = available.length === 0
+  if (aLocker) aLocker.innerHTML = available.length === 0
     ? '<option>空きロッカーなし</option>'
     : available.map(l => `<option value="${l.locker_id}">${l.locker_id}</option>`).join('');
 
   const aRetLocker = document.getElementById('a-ret-locker');
-  aRetLocker.innerHTML = inuse.length === 0
+  if (aRetLocker) aRetLocker.innerHTML = inuse.length === 0
     ? '<option>使用中なし</option>'
     : inuse.map(l => `<option value="${l.locker_id}">${l.locker_id} (${l.user_name || ''})</option>`).join('');
 
   // Grid
   const grid = document.getElementById('locker-grid');
-  grid.innerHTML = lockers.map(l =>
+  if (grid) grid.innerHTML = lockers.map(l =>
     `<div class="locker-cell ${l.status}">${l.locker_id}</div>`
   ).join('');
 
   // Admin table
   const tbody = document.getElementById('admin-table');
-  tbody.innerHTML = lockers.map(l => `
+  if (tbody) tbody.innerHTML = lockers.map(l => `
     <tr>
       <td><span style="font-family:'Space Mono',monospace;font-weight:700">${l.locker_id}</span></td>
       <td><span class="${l.status === 'available' ? 'badge-available' : 'badge-inuse'}">${l.status === 'available' ? '空き' : '使用中'}</span></td>
@@ -642,19 +711,24 @@ function renderAll() {
     ...lockers.map(l => `${l.locker_id},${l.status === 'available' ? '空き' : '使用中'},${l.student_id || ''},${l.user_name || ''}`)
   ].join('\n');
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv' });
-  document.getElementById('csv-download').href = URL.createObjectURL(blob);
+  const csvEl = document.getElementById('csv-download');
+  if (csvEl) csvEl.href = URL.createObjectURL(blob);
 }
 
 // =====================
-// User actions
+// Alert
 // =====================
 function showAlert(id, type, msg) {
   const el = document.getElementById(id);
+  if (!el) return;
   el.className = `alert ${type} show`;
   el.textContent = msg;
   setTimeout(() => el.classList.remove('show'), 4000);
 }
 
+// =====================
+// User actions
+// =====================
 async function rentLocker() {
   const lockerId = document.getElementById('u-locker').value;
   const sid = document.getElementById('u-sid').value.trim();
@@ -680,22 +754,16 @@ async function rentLocker() {
 }
 
 // =====================
-// Admin
+// Admin login
 // =====================
 function adminLogin() {
   const pw = document.getElementById('admin-pw').value;
   if (pw === 'admin123') {
-    document.getElementById('admin-login').style.display = 'none';
-    document.getElementById('admin-panel').style.display = 'block';
+    showScreen('admin');
+    setAdminAction('rent');
   } else {
     showAlert('alert-login', 'error', 'パスワードが間違っています');
   }
-}
-
-function adminLogout() {
-  document.getElementById('admin-login').style.display = 'block';
-  document.getElementById('admin-panel').style.display = 'none';
-  document.getElementById('admin-pw').value = '';
 }
 
 function setAdminAction(action) {
@@ -703,7 +771,7 @@ function setAdminAction(action) {
   document.getElementById('admin-rent-form').style.display = action === 'rent' ? 'block' : 'none';
   document.getElementById('admin-return-form').style.display = action === 'return' ? 'block' : 'none';
   document.getElementById('action-rent-btn').style.background = action === 'rent' ? 'var(--accent)' : '';
-  document.getElementById('action-rent-btn').style.color = action === 'rent' ? '#000' : '';
+  document.getElementById('action-rent-btn').style.color = action === 'rent' ? '#fff' : '';
   document.getElementById('action-return-btn').style.background = action === 'return' ? 'var(--danger)' : '';
   document.getElementById('action-return-btn').style.color = action === 'return' ? '#fff' : '';
 }
@@ -739,9 +807,8 @@ async function adminReturn() {
 // =====================
 // Init
 // =====================
-setAdminAction('rent');
-fetchLockers();
-setInterval(fetchLockers, 30000); // 30秒ごとに自動更新
+showScreen('login');
+setInterval(() => { if (currentScreen !== 'login') fetchLockers(); }, 30000);
 </script>
 </body>
 </html>
