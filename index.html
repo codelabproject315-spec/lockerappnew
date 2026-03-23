@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ロッカー管理システム</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: rgba(255,255,255,0.05);
+      --surface-hover: rgba(255,255,255,0.09);
+      --border: rgba(255,255,255,0.1);
+      --accent: #4fc3f7;
+      --accent2: #81c784;
+      --danger: #ef5350;
+      --text: #f0f4f8;
+      --text-muted: #8896a5;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Hero background */
+    .hero-bg {
+      position: fixed;
+      inset: 0;
+      background: url('https://raw.githubusercontent.com/codelabproject315-spec/locker-app/main/about01.jpg') center/cover no-repeat;
+      opacity: 0.12;
+      z-index: 0;
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 24px 16px 60px;
+    }
+
+    /* Header */
+    header {
+      text-align: center;
+      padding: 48px 0 36px;
+    }
+
+    header .badge {
+      display: inline-block;
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      padding: 4px 12px;
+      border-radius: 99px;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+    }
+
+    header h1 {
+      font-size: clamp(24px, 5vw, 38px);
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      line-height: 1.2;
+    }
+
+    header h1 span {
+      color: var(--accent);
+    }
+
+    /* Stats bar */
+    .stats-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+
+    .stat-card {
+      flex: 1;
+      min-width: 120px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      text-align: center;
+    }
+
+    .stat-card .num {
+      font-family: 'Space Mono', monospace;
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .stat-card .num.available { color: var(--accent2); }
+    .stat-card .num.inuse { color: var(--danger); }
+    .stat-card .num.total { color: var(--accent); }
+
+    .stat-card .label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 6px;
+      letter-spacing: 1px;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 4px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: #000;
+      font-weight: 700;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .card h2 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Form */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+
+    select, input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 11px 14px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+      appearance: none;
+    }
+
+    select:focus, input:focus {
+      border-color: var(--accent);
+    }
+
+    select option {
+      background: #1a1f2e;
+    }
+
+    /* Buttons */
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+    }
+
+    .btn-primary:hover { filter: brightness(1.1); }
+
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .btn-danger:hover { filter: brightness(1.1); }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover { background: var(--surface-hover); }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* Alert */
+    .alert {
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .alert.show { display: block; }
+    .alert.success { background: rgba(129,199,132,0.15); border: 1px solid var(--accent2); color: var(--accent2); }
+    .alert.error { background: rgba(239,83,80,0.15); border: 1px solid var(--danger); color: var(--danger); }
+    .alert.info { background: rgba(79,195,247,0.15); border: 1px solid var(--accent); color: var(--accent); }
+
+    /* Locker grid */
+    .locker-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .locker-cell {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      border: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .locker-cell.available {
+      background: rgba(129,199,132,0.15);
+      border-color: rgba(129,199,132,0.4);
+      color: var(--accent2);
+    }
+
+    .locker-cell.in_use {
+      background: rgba(239,83,80,0.15);
+      border-color: rgba(239,83,80,0.4);
+      color: var(--danger);
+    }
+
+    /* Table */
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 12px;
+      color: var(--text-muted);
+      font-size: 11px;
+      letter-spacing: 1px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 500;
+    }
+
+    td {
+      padding: 11px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    tr:hover td { background: var(--surface-hover); }
+
+    .badge-available {
+      background: rgba(129,199,132,0.2);
+      color: var(--accent2);
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .badge-inuse {
+      background: rgba(239,83,80,0.2);
+      color: var(--danger);
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    /* Admin action buttons */
+    .action-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .action-row .btn {
+      flex: 1;
+    }
+
+    /* Password form */
+    .login-wrap {
+      max-width: 360px;
+      margin: 0 auto;
+    }
+
+    /* CSV download */
+    .csv-btn {
+      display: inline-block;
+      padding: 8px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-muted);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      margin-top: 12px;
+    }
+
+    .csv-btn:hover { background: var(--surface-hover); color: var(--text); }
+
+    /* Loading spinner */
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Legend */
+    .legend {
+      display: flex;
+      gap: 16px;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .legend span { display: flex; align-items: center; gap: 6px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot.available { background: var(--accent2); }
+    .dot.inuse { background: var(--danger); }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .card { padding: 16px; }
+      .stat-card .num { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="hero-bg"></div>
+
+<div class="wrapper">
+  <header>
+    <div class="badge">Locker Management</div>
+    <h1>ロッカー管理<span>システム</span> 🔐</h1>
+  </header>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-card">
+      <div class="num total" id="stat-total">—</div>
+      <div class="label">総数</div>
+    </div>
+    <div class="stat-card">
+      <div class="num available" id="stat-available">—</div>
+      <div class="label">空き</div>
+    </div>
+    <div class="stat-card">
+      <div class="num inuse" id="stat-inuse">—</div>
+      <div class="label">使用中</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('user')">🙋 利用者</button>
+    <button class="tab-btn" onclick="switchTab('admin')">⚙️ 管理者</button>
+  </div>
+
+  <!-- User Tab -->
+  <div class="tab-content active" id="tab-user">
+    <div class="card">
+      <h2>🔑 利用開始（登録）</h2>
+      <div id="alert-user" class="alert"></div>
+      <div class="form-group">
+        <label>ロッカー番号</label>
+        <select id="u-locker"></select>
+      </div>
+      <div class="form-group">
+        <label>学籍番号</label>
+        <input type="text" id="u-sid" placeholder="例: 2403036">
+      </div>
+      <div class="form-group">
+        <label>氏名</label>
+        <input type="text" id="u-name" placeholder="例: 埼玉太郎">
+      </div>
+      <button class="btn btn-primary" id="btn-rent" onclick="rentLocker()">利用開始</button>
+    </div>
+
+    <div class="card">
+      <h2>📊 空き状況</h2>
+      <div class="legend">
+        <span><span class="dot available"></span>空き</span>
+        <span><span class="dot inuse"></span>使用中</span>
+      </div>
+      <div class="locker-grid" id="locker-grid"></div>
+    </div>
+  </div>
+
+  <!-- Admin Tab -->
+  <div class="tab-content" id="tab-admin">
+
+    <!-- Login -->
+    <div id="admin-login">
+      <div class="card login-wrap">
+        <h2>🔒 管理者ログイン</h2>
+        <div id="alert-login" class="alert"></div>
+        <div class="form-group">
+          <label>パスワード</label>
+          <input type="password" id="admin-pw" placeholder="パスワードを入力">
+        </div>
+        <button class="btn btn-primary" onclick="adminLogin()">ログイン</button>
+      </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="admin-panel" style="display:none">
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+          <h2 style="margin:0">✅ 管理者メニュー</h2>
+          <button class="btn btn-secondary" style="width:auto;padding:8px 16px" onclick="adminLogout()">ログアウト</button>
+        </div>
+
+        <!-- Action selector -->
+        <div class="action-row">
+          <button class="btn btn-secondary" id="action-rent-btn" onclick="setAdminAction('rent')">代理貸出</button>
+          <button class="btn btn-secondary" id="action-return-btn" onclick="setAdminAction('return')">強制返却</button>
+        </div>
+
+        <!-- 代理貸出 form -->
+        <div id="admin-rent-form">
+          <div id="alert-admin-rent" class="alert"></div>
+          <div class="form-group">
+            <label>空きロッカー</label>
+            <select id="a-locker"></select>
+          </div>
+          <div class="form-group">
+            <label>学籍番号</label>
+            <input type="text" id="a-sid" placeholder="例: 2403036">
+          </div>
+          <div class="form-group">
+            <label>氏名</label>
+            <input type="text" id="a-name" placeholder="例: 埼玉太郎">
+          </div>
+          <button class="btn btn-primary" onclick="adminRent()">登録</button>
+        </div>
+
+        <!-- 強制返却 form -->
+        <div id="admin-return-form" style="display:none">
+          <div id="alert-admin-return" class="alert"></div>
+          <div class="form-group">
+            <label>使用中のロッカー</label>
+            <select id="a-ret-locker"></select>
+          </div>
+          <button class="btn btn-danger" onclick="adminReturn()">強制返却</button>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="card">
+        <h2>📋 利用状況一覧</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ロッカー番号</th>
+                <th>状態</th>
+                <th>学籍番号</th>
+                <th>氏名</th>
+              </tr>
+            </thead>
+            <tbody id="admin-table"></tbody>
+          </table>
+        </div>
+        <a class="csv-btn" id="csv-download" download="lockers.csv">⬇ CSVダウンロード</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// =====================
+// State
+// =====================
+let lockers = [];
+let adminAction = 'rent';
+
+// =====================
+// Tab
+// =====================
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', (i === 0 && tab === 'user') || (i === 1 && tab === 'admin'));
+  });
+  document.getElementById('tab-user').classList.toggle('active', tab === 'user');
+  document.getElementById('tab-admin').classList.toggle('active', tab === 'admin');
+}
+
+// =====================
+// API
+// =====================
+async function fetchLockers() {
+  try {
+    const res = await fetch('/api/lockers');
+    const data = await res.json();
+    lockers = data;
+    renderAll();
+  } catch (e) {
+    console.error('取得失敗', e);
+  }
+}
+
+async function apiRent(lockerId, studentId, userName) {
+  const res = await fetch('/api/rent', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ locker_id: lockerId, student_id: studentId, user_name: userName })
+  });
+  return res.ok;
+}
+
+async function apiReturn(lockerId) {
+  const res = await fetch('/api/return', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ locker_id: lockerId })
+  });
+  return res.ok;
+}
+
+// =====================
+// Render
+// =====================
+function renderAll() {
+  const available = lockers.filter(l => l.status === 'available');
+  const inuse = lockers.filter(l => l.status === 'in_use');
+
+  document.getElementById('stat-total').textContent = lockers.length;
+  document.getElementById('stat-available').textContent = available.length;
+  document.getElementById('stat-inuse').textContent = inuse.length;
+
+  // User locker select
+  const uLocker = document.getElementById('u-locker');
+  uLocker.innerHTML = available.length === 0
+    ? '<option>空きロッカーなし</option>'
+    : available.map(l => `<option value="${l.locker_id}">${l.locker_id}</option>`).join('');
+
+  // Admin selects
+  const aLocker = document.getElementById('a-locker');
+  aLocker.innerHTML = available.length === 0
+    ? '<option>空きロッカーなし</option>'
+    : available.map(l => `<option value="${l.locker_id}">${l.locker_id}</option>`).join('');
+
+  const aRetLocker = document.getElementById('a-ret-locker');
+  aRetLocker.innerHTML = inuse.length === 0
+    ? '<option>使用中なし</option>'
+    : inuse.map(l => `<option value="${l.locker_id}">${l.locker_id} (${l.user_name || ''})</option>`).join('');
+
+  // Grid
+  const grid = document.getElementById('locker-grid');
+  grid.innerHTML = lockers.map(l =>
+    `<div class="locker-cell ${l.status}">${l.locker_id}</div>`
+  ).join('');
+
+  // Admin table
+  const tbody = document.getElementById('admin-table');
+  tbody.innerHTML = lockers.map(l => `
+    <tr>
+      <td><span style="font-family:'Space Mono',monospace;font-weight:700">${l.locker_id}</span></td>
+      <td><span class="${l.status === 'available' ? 'badge-available' : 'badge-inuse'}">${l.status === 'available' ? '空き' : '使用中'}</span></td>
+      <td>${l.student_id || '—'}</td>
+      <td>${l.user_name || '—'}</td>
+    </tr>
+  `).join('');
+
+  // CSV
+  const csv = ['ロッカー番号,状態,学籍番号,氏名',
+    ...lockers.map(l => `${l.locker_id},${l.status === 'available' ? '空き' : '使用中'},${l.student_id || ''},${l.user_name || ''}`)
+  ].join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv' });
+  document.getElementById('csv-download').href = URL.createObjectURL(blob);
+}
+
+// =====================
+// User actions
+// =====================
+function showAlert(id, type, msg) {
+  const el = document.getElementById(id);
+  el.className = `alert ${type} show`;
+  el.textContent = msg;
+  setTimeout(() => el.classList.remove('show'), 4000);
+}
+
+async function rentLocker() {
+  const lockerId = document.getElementById('u-locker').value;
+  const sid = document.getElementById('u-sid').value.trim();
+  const name = document.getElementById('u-name').value.trim();
+  if (!sid || !name) return showAlert('alert-user', 'error', 'すべての項目を入力してください');
+
+  const btn = document.getElementById('btn-rent');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>登録中...';
+
+  const ok = await apiRent(lockerId, sid, name);
+  btn.disabled = false;
+  btn.textContent = '利用開始';
+
+  if (ok) {
+    showAlert('alert-user', 'success', `ロッカー ${lockerId} の登録が完了しました！`);
+    document.getElementById('u-sid').value = '';
+    document.getElementById('u-name').value = '';
+    await fetchLockers();
+  } else {
+    showAlert('alert-user', 'error', '登録に失敗しました。再試行してください。');
+  }
+}
+
+// =====================
+// Admin
+// =====================
+function adminLogin() {
+  const pw = document.getElementById('admin-pw').value;
+  if (pw === 'admin123') {
+    document.getElementById('admin-login').style.display = 'none';
+    document.getElementById('admin-panel').style.display = 'block';
+  } else {
+    showAlert('alert-login', 'error', 'パスワードが間違っています');
+  }
+}
+
+function adminLogout() {
+  document.getElementById('admin-login').style.display = 'block';
+  document.getElementById('admin-panel').style.display = 'none';
+  document.getElementById('admin-pw').value = '';
+}
+
+function setAdminAction(action) {
+  adminAction = action;
+  document.getElementById('admin-rent-form').style.display = action === 'rent' ? 'block' : 'none';
+  document.getElementById('admin-return-form').style.display = action === 'return' ? 'block' : 'none';
+  document.getElementById('action-rent-btn').style.background = action === 'rent' ? 'var(--accent)' : '';
+  document.getElementById('action-rent-btn').style.color = action === 'rent' ? '#000' : '';
+  document.getElementById('action-return-btn').style.background = action === 'return' ? 'var(--danger)' : '';
+  document.getElementById('action-return-btn').style.color = action === 'return' ? '#fff' : '';
+}
+
+async function adminRent() {
+  const lockerId = document.getElementById('a-locker').value;
+  const sid = document.getElementById('a-sid').value.trim();
+  const name = document.getElementById('a-name').value.trim();
+  if (!sid || !name) return showAlert('alert-admin-rent', 'error', '入力が不足しています');
+
+  const ok = await apiRent(lockerId, sid, name);
+  if (ok) {
+    showAlert('alert-admin-rent', 'success', `ロッカー ${lockerId} を登録しました`);
+    document.getElementById('a-sid').value = '';
+    document.getElementById('a-name').value = '';
+    await fetchLockers();
+  } else {
+    showAlert('alert-admin-rent', 'error', '登録に失敗しました');
+  }
+}
+
+async function adminReturn() {
+  const lockerId = document.getElementById('a-ret-locker').value;
+  const ok = await apiReturn(lockerId);
+  if (ok) {
+    showAlert('alert-admin-return', 'success', `ロッカー ${lockerId} を返却しました`);
+    await fetchLockers();
+  } else {
+    showAlert('alert-admin-return', 'error', '返却に失敗しました');
+  }
+}
+
+// =====================
+// Init
+// =====================
+setAdminAction('rent');
+fetchLockers();
+setInterval(fetchLockers, 30000); // 30秒ごとに自動更新
+</script>
+</body>
+</html>

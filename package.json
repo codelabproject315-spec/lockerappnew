@@ -1,0 +1,9 @@
+{
+  "name": "locker-app",
+  "version": "1.0.0",
+  "description": "ロッカー管理システム",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.0.0",
+    "@aws-sdk/util-dynamodb": "^3.0.0"
+  }
+}
