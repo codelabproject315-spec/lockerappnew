@@ -543,10 +543,6 @@
         <label>使用中のロッカー番号</label>
         <select id="u-ret-locker"></select>
       </div>
-      <div class="form-group">
-        <label>学籍番号（確認）</label>
-        <input type="text" id="u-ret-sid" placeholder="例: 2403036">
-      </div>
       <button class="btn btn-danger" id="btn-return" onclick="returnLocker()">登録を取り消す</button>
     </div>
 
@@ -752,7 +748,8 @@ function logout() {
 // =====================
 async function fetchLockers() {
   try {
-    const res = await fetch('/api/lockers');
+    const query = otpEmail ? `?email=${encodeURIComponent(otpEmail)}` : '';
+    const res = await fetch(`/api/lockers${query}`);
     const data = await res.json();
     lockers = data;
     renderAll();
@@ -761,20 +758,20 @@ async function fetchLockers() {
   }
 }
 
-async function apiRent(lockerId, studentId, userName) {
+async function apiRent(lockerId, studentId, userName, email) {
   const res = await fetch('/api/rent', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ locker_id: lockerId, student_id: studentId, user_name: userName })
+    body: JSON.stringify({ locker_id: lockerId, student_id: studentId, user_name: userName, email })
   });
   return res.ok;
 }
 
-async function apiReturn(lockerId) {
+async function apiReturn(lockerId, email) {
   const res = await fetch('/api/return', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ locker_id: lockerId })
+    body: JSON.stringify({ locker_id: lockerId, email })
   });
   return res.ok;
 }
@@ -808,11 +805,14 @@ function renderAll() {
     ? '<option>空きロッカーなし</option>'
     : available.map(l => `<option value="${l.locker_id}">${l.locker_id}</option>`).join('');
 
-  // User return select
+  // User return select（自分が登録したロッカーのみ・フロントで照合しない、サーバー側APIで制御）
   const uRetLocker = document.getElementById('u-ret-locker');
-  if (uRetLocker) uRetLocker.innerHTML = inuse.length === 0
-    ? '<option>使用中なし</option>'
-    : inuse.map(l => `<option value="${l.locker_id}">${l.locker_id} (${l.user_name || ''})</option>`).join('');
+  if (uRetLocker) {
+    const myLockers = inuse.filter(l => l.email === otpEmail);
+    uRetLocker.innerHTML = myLockers.length === 0
+      ? '<option value="">あなたが登録したロッカーはありません</option>'
+      : myLockers.map(l => `<option value="${l.locker_id}">${l.locker_id}</option>`).join('');
+  }
 
   // Admin selects
   const aLocker = document.getElementById('a-locker');
@@ -875,9 +875,8 @@ async function rentLocker() {
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>登録中...';
 
-  const ok = await apiRent(lockerId, sid, name);
+  const ok = await apiRent(lockerId, sid, name, otpEmail);
   btn.disabled = false;
-  btn.textContent = '利用開始';
 
   if (ok) {
     showAlert('alert-user', 'success', `ロッカー ${lockerId} の登録が完了しました！`);
@@ -894,28 +893,20 @@ async function rentLocker() {
 // =====================
 async function returnLocker() {
   const lockerId = document.getElementById('u-ret-locker').value;
-  const sid = document.getElementById('u-ret-sid').value.trim();
-  if (!sid) return showAlert('alert-user-return', 'error', '学籍番号を入力してください');
-
-  const locker = lockers.find(l => l.locker_id === lockerId);
-  if (!locker || locker.student_id !== sid) {
-    return showAlert('alert-user-return', 'error', '学籍番号が一致しません');
-  }
 
   const btn = document.getElementById('btn-return');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>取り消し中...';
 
-  const ok = await apiReturn(lockerId);
+  const ok = await apiReturn(lockerId, otpEmail);
   btn.disabled = false;
   btn.textContent = '登録を取り消す';
 
   if (ok) {
     showAlert('alert-user-return', 'success', `ロッカー ${lockerId} の登録を取り消しました`);
-    document.getElementById('u-ret-sid').value = '';
     await fetchLockers();
   } else {
-    showAlert('alert-user-return', 'error', '取り消しに失敗しました。再試行してください。');
+    showAlert('alert-user-return', 'error', '取り消しに失敗しました。自分が登録したロッカーのみ取り消せます。');
   }
 }
 
@@ -951,7 +942,7 @@ async function adminRent() {
 
 async function adminReturn() {
   const lockerId = document.getElementById('a-ret-locker').value;
-  const ok = await apiReturn(lockerId);
+  const ok = await apiReturn(lockerId, otpEmail);
   if (ok) {
     showAlert('alert-admin-return', 'success', `ロッカー ${lockerId} を返却しました`);
     await fetchLockers();
