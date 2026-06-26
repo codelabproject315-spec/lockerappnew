@@ -26,8 +26,19 @@ module.exports = async (req, res) => {
       return na - nb;
     });
 
+    const requestEmail = (req.query && req.query.email) ? req.query.email.toLowerCase() : null;
+
+    // emailは本人のロッカーのみ返す（他人のメールアドレスを隠す）
+    const safeItems = items.map(item => {
+      const { email, ...rest } = item;
+      if (requestEmail && email && email.toLowerCase() === requestEmail) {
+        return { ...rest, email };
+      }
+      return rest;
+    });
+
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.status(200).json(items);
+    res.status(200).json(safeItems);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'DynamoDB接続エラー', detail: err.message });
