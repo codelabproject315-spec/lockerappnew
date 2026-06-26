@@ -877,6 +877,7 @@ async function rentLocker() {
 
   const ok = await apiRent(lockerId, sid, name, otpEmail);
   btn.disabled = false;
+  btn.textContent = '利用開始';
 
   if (ok) {
     showAlert('alert-user', 'success', `ロッカー ${lockerId} の登録が完了しました！`);
