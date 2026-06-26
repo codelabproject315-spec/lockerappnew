@@ -14,9 +14,9 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { locker_id, student_id, user_name } = req.body;
+  const { locker_id, student_id, user_name, email } = req.body;
 
-  if (!locker_id || !student_id || !user_name) {
+  if (!locker_id || !student_id || !user_name || !email) {
     return res.status(400).json({ error: '必須項目が不足しています' });
   }
 
@@ -26,12 +26,13 @@ module.exports = async (req, res) => {
     const command = new UpdateItemCommand({
       TableName: 'Lockers',
       Key: marshall({ locker_id: String(locker_id) }),
-      UpdateExpression: 'SET #st = :s, student_id = :sid, user_name = :u, last_updated = :t',
+      UpdateExpression: 'SET #st = :s, student_id = :sid, user_name = :u, email = :e, last_updated = :t',
       ExpressionAttributeNames: { '#st': 'status' },
       ExpressionAttributeValues: marshall({
         ':s': 'in_use',
         ':sid': student_id,
         ':u': user_name,
+        ':e': email,
         ':t': timestamp,
       }),
     });
