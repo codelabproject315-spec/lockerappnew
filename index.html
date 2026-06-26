@@ -537,6 +537,20 @@
     </div>
 
     <div class="card">
+      <h2>🗑️ 登録取り消し</h2>
+      <div id="alert-user-return" class="alert"></div>
+      <div class="form-group">
+        <label>使用中のロッカー番号</label>
+        <select id="u-ret-locker"></select>
+      </div>
+      <div class="form-group">
+        <label>学籍番号（確認）</label>
+        <input type="text" id="u-ret-sid" placeholder="例: 2403036">
+      </div>
+      <button class="btn btn-danger" id="btn-return" onclick="returnLocker()">登録を取り消す</button>
+    </div>
+
+    <div class="card">
       <h2>📊 空き状況</h2>
       <div class="legend">
         <span><span class="dot available"></span>空き</span>
@@ -794,6 +808,12 @@ function renderAll() {
     ? '<option>空きロッカーなし</option>'
     : available.map(l => `<option value="${l.locker_id}">${l.locker_id}</option>`).join('');
 
+  // User return select
+  const uRetLocker = document.getElementById('u-ret-locker');
+  if (uRetLocker) uRetLocker.innerHTML = inuse.length === 0
+    ? '<option>使用中なし</option>'
+    : inuse.map(l => `<option value="${l.locker_id}">${l.locker_id} (${l.user_name || ''})</option>`).join('');
+
   // Admin selects
   const aLocker = document.getElementById('a-locker');
   if (aLocker) aLocker.innerHTML = available.length === 0
@@ -866,6 +886,36 @@ async function rentLocker() {
     await fetchLockers();
   } else {
     showAlert('alert-user', 'error', '登録に失敗しました。再試行してください。');
+  }
+}
+
+// =====================
+// User return action
+// =====================
+async function returnLocker() {
+  const lockerId = document.getElementById('u-ret-locker').value;
+  const sid = document.getElementById('u-ret-sid').value.trim();
+  if (!sid) return showAlert('alert-user-return', 'error', '学籍番号を入力してください');
+
+  const locker = lockers.find(l => l.locker_id === lockerId);
+  if (!locker || locker.student_id !== sid) {
+    return showAlert('alert-user-return', 'error', '学籍番号が一致しません');
+  }
+
+  const btn = document.getElementById('btn-return');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>取り消し中...';
+
+  const ok = await apiReturn(lockerId);
+  btn.disabled = false;
+  btn.textContent = '登録を取り消す';
+
+  if (ok) {
+    showAlert('alert-user-return', 'success', `ロッカー ${lockerId} の登録を取り消しました`);
+    document.getElementById('u-ret-sid').value = '';
+    await fetchLockers();
+  } else {
+    showAlert('alert-user-return', 'error', '取り消しに失敗しました。再試行してください。');
   }
 }
 
