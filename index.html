@@ -930,7 +930,7 @@ async function adminRent() {
   const name = document.getElementById('a-name').value.trim();
   if (!sid || !name) return showAlert('alert-admin-rent', 'error', '入力が不足しています');
 
-  const ok = await apiRent(lockerId, sid, name);
+  const ok = await apiRent(lockerId, sid, name, otpEmail);
   if (ok) {
     showAlert('alert-admin-rent', 'success', `ロッカー ${lockerId} を登録しました`);
     document.getElementById('a-sid').value = '';
