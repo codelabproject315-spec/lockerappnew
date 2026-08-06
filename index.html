@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ロッカー管理システム</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --surface: rgba(255,255,255,0.88);
+      --surface-hover: rgba(255,255,255,0.97);
+      --border: rgba(0,0,0,0.1);
+      --accent: #1565c0;
+      --accent2: #2e7d32;
+      --danger: #c62828;
+      --text: #1a2332;
+      --text-muted: #5a6a7a;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      background: url('https://raw.githubusercontent.com/codelabproject315-spec/locker-app/main/about01.jpg') center/cover fixed no-repeat;
+      color: var(--text);
+    }
+
+    .hero-bg {
+      position: fixed;
+      inset: 0;
+      background: rgba(210, 230, 255, 0.2);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 24px 16px 60px;
+    }
+
+    /* Header */
+    header {
+      text-align: center;
+      padding: 48px 0 36px;
+    }
+
+    header .badge {
+      display: inline-block;
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      padding: 4px 12px;
+      border-radius: 99px;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+    }
+
+    header h1 {
+      font-size: clamp(24px, 5vw, 38px);
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      line-height: 1.2;
+    }
+
+    header h1 span {
+      color: var(--accent);
+    }
+
+    /* Stats bar */
+    .stats-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+
+    .stat-card {
+      flex: 1;
+      min-width: 120px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      text-align: center;
+    }
+
+    .stat-card .num {
+      font-family: 'Space Mono', monospace;
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .stat-card .num.available { color: #2e7d32; }
+    .stat-card .num.inuse { color: #c62828; }
+    .stat-card .num.total { color: #1565c0; }
+
+    .stat-card .label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 6px;
+      letter-spacing: 1px;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 4px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: #000;
+      font-weight: 700;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .card h2 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Form */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+
+    select, input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 11px 14px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+      appearance: none;
+    }
+
+    select:focus, input:focus {
+      border-color: var(--accent);
+    }
+
+    select option {
+      background: #fff;
+      color: #1a2332;
+    }
+
+    /* Buttons */
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+    }
+
+    .btn-primary:hover { filter: brightness(1.1); }
+
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .btn-danger:hover { filter: brightness(1.1); }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover { background: var(--surface-hover); }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* Alert */
+    .alert {
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .alert.show { display: block; }
+    .alert.success { background: rgba(129,199,132,0.15); border: 1px solid var(--accent2); color: var(--accent2); }
+    .alert.error { background: rgba(239,83,80,0.15); border: 1px solid var(--danger); color: var(--danger); }
+    .alert.info { background: rgba(79,195,247,0.15); border: 1px solid var(--accent); color: var(--accent); }
+
+    /* Locker grid */
+    .locker-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .locker-cell {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      border: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .locker-cell.available {
+      background: rgba(129,199,132,0.15);
+      border-color: rgba(129,199,132,0.4);
+      color: var(--accent2);
+    }
+
+    .locker-cell.in_use {
+      background: rgba(239,83,80,0.15);
+      border-color: rgba(239,83,80,0.4);
+      color: var(--danger);
+    }
+
+    /* Table */
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th {
+      text-align: left;
+      padding: 10px 12px;
+      color: var(--text-muted);
+      font-size: 11px;
+      letter-spacing: 1px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 500;
+    }
+
+    td {
+      padding: 11px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    tr:hover td { background: var(--surface-hover); }
+
+    .badge-available {
+      background: rgba(129,199,132,0.2);
+      color: #2e7d32;
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .badge-inuse {
+      background: rgba(198,40,40,0.12);
+      color: #c62828;
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    /* Admin action buttons */
+    .action-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .action-row .btn {
+      flex: 1;
+    }
+
+    /* Password form */
+    .login-wrap {
+      max-width: 360px;
+      margin: 0 auto;
+    }
+
+    /* CSV download */
+    .csv-btn {
+      display: inline-block;
+      padding: 8px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-muted);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      margin-top: 12px;
+    }
+
+    .csv-btn:hover { background: var(--surface-hover); color: var(--text); }
+
+    /* Loading spinner */
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Legend */
+    .legend {
+      display: flex;
+      gap: 16px;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .legend span { display: flex; align-items: center; gap: 6px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot.available { background: var(--accent2); }
+    .dot.inuse { background: var(--danger); }
+
+    /* Login screen */
+    #screen-login {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+      overflow-y: auto;
+    }
+
+    .login-screen-wrap {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .login-screen-card {
+      background: rgba(255,255,255,0.92);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    }
+
+    .login-screen-card .form-group {
+      text-align: left;
+    }
+
+    .login-screen-card .btn-primary {
+      color: #fff;
+    }
+
+    .login-screen-card .btn-secondary {
+      background: rgba(255,255,255,0.9);
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      .card { padding: 16px; }
+      .stat-card .num { font-size: 22px; }
+      .login-screen-card { padding: 28px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="hero-bg"></div>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="screen-login">
+  <div class="login-screen-wrap">
+    <div class="login-screen-card">
+      <div class="badge" style="margin-bottom:16px">Locker Management</div>
+      <h1 style="font-size:clamp(20px,4vw,30px);font-weight:700;margin-bottom:8px">ロッカー管理<span style="color:var(--accent)">システム</span> 🔐</h1>
+
+      <!-- Step indicator -->
+      <div id="login-steps" style="display:flex;justify-content:center;gap:8px;margin-bottom:24px">
+        <div id="step1-dot" style="width:8px;height:8px;border-radius:50%;background:var(--accent)"></div>
+        <div id="step2-dot" style="width:8px;height:8px;border-radius:50%;background:var(--border)"></div>
+      </div>
+
+      <!-- Step 1: 利用者メール入力 or 管理者選択 -->
+      <div id="login-step1">
+        <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px">学校のメールアドレスで認証してください</p>
+        <div id="alert-login" class="alert" style="text-align:left"></div>
+
+        <div class="form-group" style="text-align:left">
+          <label>メールアドレス</label>
+          <input type="email" id="user-email" placeholder="メールアドレスを入力"
+            style="font-size:15px;padding:14px;width:100%;"
+            onkeydown="if(event.key==='Enter')sendOtp()">
+        </div>
+        <button class="btn btn-primary" style="color:#fff;padding:14px;font-size:15px;margin-bottom:20px" onclick="sendOtp()" id="btn-send-otp">🙋 認証コードを送信</button>
+
+        <p style="color:var(--text-muted);font-size:11px;margin-top:8px">管理者アカウントは自動的に判定されます</p>
+      </div>
+
+      <!-- Step 2: OTP入力 -->
+      <div id="login-step2" style="display:none">
+        <p style="color:var(--text-muted);font-size:13px;margin-bottom:4px">認証コードを入力してください</p>
+        <p id="otp-email-label" style="color:var(--accent);font-size:13px;font-weight:700;margin-bottom:20px"></p>
+        <div id="alert-otp" class="alert" style="text-align:left"></div>
+        <div class="form-group" style="text-align:left">
+          <label>認証コード（6桁）</label>
+          <input type="text" id="otp-input" placeholder="123456" maxlength="6" style="font-size:24px;letter-spacing:8px;text-align:center" onkeydown="if(event.key==='Enter')verifyOtp()">
+        </div>
+        <button class="btn btn-primary" style="color:#fff;margin-bottom:12px" onclick="verifyOtp()" id="btn-verify-otp">✅ 認証する</button>
+        <button class="btn btn-secondary" style="font-size:12px" onclick="backToStep1()">← 戻る / 再送信</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== USER SCREEN ===== -->
+<div id="screen-user" style="display:none">
+<div class="wrapper">
+  <header>
+    <div class="badge">Locker Management</div>
+    <h1>ロッカー管理<span>システム</span> 🔐</h1>
+  </header>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-card">
+      <div class="num total" id="stat-total">—</div>
+      <div class="label">総数</div>
+    </div>
+    <div class="stat-card">
+      <div class="num available" id="stat-available">—</div>
+      <div class="label">空き</div>
+    </div>
+    <div class="stat-card">
+      <div class="num inuse" id="stat-inuse">—</div>
+      <div class="label">使用中</div>
+    </div>
+  </div>
+
+  <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+    <button class="btn btn-secondary" style="width:auto;padding:8px 16px;font-size:13px" onclick="logout()">← ログアウト</button>
+  </div>
+
+    <div class="card" id="my-locker-card" style="display:none;border:2px solid var(--accent)">
+      <h2>📦 あなたの現在のロッカー</h2>
+      <div style="text-align:center;padding:12px 0 20px">
+        <div style="font-size:56px;font-weight:800;color:var(--accent);font-family:'Space Mono',monospace;line-height:1" id="my-locker-number">—</div>
+        <p style="color:var(--text-muted);font-size:13px;margin-top:12px">現在このロッカーを利用中です（1人1台まで利用できます）</p>
+      </div>
+    </div>
+
+    <div class="card" id="rent-card">
+      <h2>🔑 利用開始（登録）</h2>
+      <div id="alert-user" class="alert"></div>
+      <p style="color:var(--text-muted);font-size:12px;margin-bottom:16px">認証済みのメールアドレス（<span id="rent-email-label" style="font-weight:700;color:var(--accent)"></span>）でロッカーを登録します。学籍番号・氏名の入力は不要です。</p>
+      <div class="form-group">
+        <label>ロッカー番号</label>
+        <select id="u-locker"></select>
+      </div>
+      <button class="btn btn-primary" id="btn-rent" onclick="rentLocker()">利用開始</button>
+    </div>
+
+    <div class="card">
+      <h2>🗑️ 登録取り消し</h2>
+      <div id="alert-user-return" class="alert"></div>
+      <div class="form-group">
+        <label>使用中のロッカー番号</label>
+        <select id="u-ret-locker"></select>
+      </div>
+      <button class="btn btn-danger" id="btn-return" onclick="returnLocker()">登録を取り消す</button>
+    </div>
+
+    <div class="card">
+      <h2>📊 空き状況</h2>
+      <div class="legend">
+        <span><span class="dot available"></span>空き</span>
+        <span><span class="dot inuse"></span>使用中</span>
+      </div>
+      <div class="locker-grid" id="locker-grid"></div>
+    </div>
+  </div>
+
+</div><!-- end wrapper -->
+</div><!-- end screen-user -->
+
+<!-- ===== ADMIN SCREEN ===== -->
+<div id="screen-admin" style="display:none">
+<div class="wrapper">
+  <header>
+    <div class="badge">Locker Management — Admin</div>
+    <h1>管理者<span>パネル</span> ⚙️</h1>
+  </header>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-card">
+      <div class="num total" id="stat-total-admin">—</div>
+      <div class="label">総数</div>
+    </div>
+    <div class="stat-card">
+      <div class="num available" id="stat-available-admin">—</div>
+      <div class="label">空き</div>
+    </div>
+    <div class="stat-card">
+      <div class="num inuse" id="stat-inuse-admin">—</div>
+      <div class="label">使用中</div>
+    </div>
+  </div>
+
+  <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+    <button class="btn btn-secondary" style="width:auto;padding:8px 16px;font-size:13px" onclick="logout()">← ログアウト</button>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <h2 style="margin:0">✅ 管理者メニュー</h2>
+    </div>
+
+    <div class="action-row">
+      <button class="btn btn-secondary" id="action-rent-btn" onclick="setAdminAction('rent')">代理貸出</button>
+      <button class="btn btn-secondary" id="action-return-btn" onclick="setAdminAction('return')">強制返却</button>
+    </div>
+
+    <div id="admin-rent-form">
+      <div id="alert-admin-rent" class="alert"></div>
+      <div class="form-group">
+        <label>空きロッカー</label>
+        <select id="a-locker"></select>
+      </div>
+      <div class="form-group">
+        <label>対象者のメールアドレス</label>
+        <input type="email" id="a-email" placeholder="例: student@sit.ac.jp">
+      </div>
+      <button class="btn btn-primary" onclick="adminRent()">登録</button>
+    </div>
+
+    <div id="admin-return-form" style="display:none">
+      <div id="alert-admin-return" class="alert"></div>
+      <div class="form-group">
+        <label>使用中のロッカー</label>
+        <select id="a-ret-locker"></select>
+      </div>
+      <button class="btn btn-danger" onclick="adminReturn()">強制返却</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📋 利用状況一覧</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ロッカー番号</th>
+            <th>状態</th>
+            <th>メールアドレス</th>
+          </tr>
+        </thead>
+        <tbody id="admin-table"></tbody>
+      </table>
+    </div>
+    <a class="csv-btn" id="csv-download" download="lockers.csv">⬇ CSVダウンロード</a>
+  </div>
+</div>
+</div><!-- end screen-admin -->
+
+<script>
+let lockers = [];
+let adminAction = 'rent';
+let currentScreen = 'login'; // 'login' | 'user' | 'admin'
+let otpEmail = '';
+
+// =====================
+// Screen switching
+// =====================
+function showScreen(name) {
+  currentScreen = name;
+  document.getElementById('screen-login').style.display = name === 'login' ? 'block' : 'none';
+  document.getElementById('screen-user').style.display  = name === 'user'  ? 'block' : 'none';
+  document.getElementById('screen-admin').style.display = name === 'admin' ? 'block' : 'none';
+  const rentEmailLabel = document.getElementById('rent-email-label');
+  if (rentEmailLabel) rentEmailLabel.textContent = otpEmail;
+  if (name !== 'login') fetchLockers();
+}
+
+function goUser() {
+  showScreen('user');
+}
+
+// =====================
+// OTP flow
+// =====================
+async function sendOtp() {
+  const email = document.getElementById('user-email').value.trim();
+  if (!email) return showAlert('alert-login', 'error', 'メールアドレスを入力してください');
+
+  const btn = document.getElementById('btn-send-otp');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>送信中...';
+
+  try {
+    const res = await fetch('/api/send-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      showAlert('alert-login', 'error', data.error || '送信失敗');
+    } else {
+      otpEmail = email;
+      document.getElementById('otp-email-label').textContent = email;
+      document.getElementById('login-step1').style.display = 'none';
+      document.getElementById('login-step2').style.display = 'block';
+      document.getElementById('step2-dot').style.background = 'var(--accent)';
+      document.getElementById('otp-input').focus();
+    }
+  } catch (e) {
+    showAlert('alert-login', 'error', '通信エラーが発生しました');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '🙋 認証コードを送信';
+}
+
+async function verifyOtp() {
+  const otp = document.getElementById('otp-input').value.trim();
+  if (!otp) return showAlert('alert-otp', 'error', 'コードを入力してください');
+
+  const btn = document.getElementById('btn-verify-otp');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>認証中...';
+
+  try {
+    const res = await fetch('/api/verify-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: otpEmail, otp }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      showAlert('alert-otp', 'error', data.error || '認証失敗');
+    } else {
+      // サーバーの判定結果で画面を振り分け
+      showScreen(data.isAdmin ? 'admin' : 'user');
+      if (data.isAdmin) setAdminAction('rent');
+    }
+  } catch (e) {
+    showAlert('alert-otp', 'error', '通信エラーが発生しました');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '✅ 認証する';
+}
+
+function backToStep1() {
+  document.getElementById('login-step1').style.display = 'block';
+  document.getElementById('login-step2').style.display = 'none';
+  document.getElementById('step2-dot').style.background = 'var(--border)';
+  document.getElementById('otp-input').value = '';
+  otpEmail = '';
+}
+
+function logout() {
+  otpEmail = '';
+  document.getElementById('user-email').value = '';
+  showScreen('login');
+}
+
+// =====================
+// API
+// =====================
+async function fetchLockers() {
+  try {
+    const query = otpEmail ? `?email=${encodeURIComponent(otpEmail)}` : '';
+    const res = await fetch(`/api/lockers${query}`);
+    const data = await res.json();
+    lockers = data;
+    renderAll();
+  } catch (e) {
+    console.error('取得失敗', e);
+  }
+}
+
+async function apiRent(lockerId, email) {
+  const res = await fetch('/api/rent', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ locker_id: lockerId, email })
+  });
+  let data = {};
+  try { data = await res.json(); } catch (e) {}
+  return { ok: res.ok, error: data.error };
+}
+
+async function apiReturn(lockerId, email) {
+  const res = await fetch('/api/return', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ locker_id: lockerId, email })
+  });
+  return res.ok;
+}
+
+// =====================
+// Render
+// =====================
+function renderAll() {
+  const available = lockers.filter(l => l.status === 'available');
+  const inuse = lockers.filter(l => l.status === 'in_use');
+
+  // User stats
+  const st = document.getElementById('stat-total');
+  const sa = document.getElementById('stat-available');
+  const si = document.getElementById('stat-inuse');
+  if (st) st.textContent = lockers.length;
+  if (sa) sa.textContent = available.length;
+  if (si) si.textContent = inuse.length;
+
+  // Admin stats
+  const sta = document.getElementById('stat-total-admin');
+  const saa = document.getElementById('stat-available-admin');
+  const sia = document.getElementById('stat-inuse-admin');
+  if (sta) sta.textContent = lockers.length;
+  if (saa) saa.textContent = available.length;
+  if (sia) sia.textContent = inuse.length;
+
+  // User locker select
+  const uLocker = document.getElementById('u-locker');
+  if (uLocker) uLocker.innerHTML = available.length === 0
+    ? '<option>空きロッカーなし</option>'
+    : available.map(l => `<option value="${l.locker_id}">${l.locker_id}</option>`).join('');
+
+  // User return select（自分が登録したロッカーのみ・フロントで照合しない、サーバー側APIで制御）
+  const uRetLocker = document.getElementById('u-ret-locker');
+  const myLockers = inuse.filter(l => l.email && otpEmail && l.email.toLowerCase() === otpEmail.toLowerCase());
+  if (uRetLocker) {
+    uRetLocker.innerHTML = myLockers.length === 0
+      ? '<option value="">あなたが登録したロッカーはありません</option>'
+      : myLockers.map(l => `<option value="${l.locker_id}">${l.locker_id}</option>`).join('');
+  }
+
+  // あなたの現在のロッカー（常時表示）＋ 1人1台制限のため貸出フォームの出し分け
+  const myLockerCard = document.getElementById('my-locker-card');
+  const rentCard = document.getElementById('rent-card');
+  if (myLockerCard) {
+    if (myLockers.length > 0) {
+      document.getElementById('my-locker-number').textContent = myLockers[0].locker_id;
+      myLockerCard.style.display = 'block';
+      if (rentCard) rentCard.style.display = 'none';
+    } else {
+      myLockerCard.style.display = 'none';
+      if (rentCard) rentCard.style.display = 'block';
+    }
+  }
+
+  // Admin selects
+  const aLocker = document.getElementById('a-locker');
+  if (aLocker) aLocker.innerHTML = available.length === 0
+    ? '<option>空きロッカーなし</option>'
+    : available.map(l => `<option value="${l.locker_id}">${l.locker_id}</option>`).join('');
+
+  const aRetLocker = document.getElementById('a-ret-locker');
+  if (aRetLocker) aRetLocker.innerHTML = inuse.length === 0
+    ? '<option>使用中なし</option>'
+    : inuse.map(l => `<option value="${l.locker_id}">${l.locker_id} (${l.email || ''})</option>`).join('');
+
+  // Grid
+  const grid = document.getElementById('locker-grid');
+  if (grid) grid.innerHTML = lockers.map(l =>
+    `<div class="locker-cell ${l.status}">${l.locker_id}</div>`
+  ).join('');
+
+  // Admin table
+  const tbody = document.getElementById('admin-table');
+  if (tbody) tbody.innerHTML = lockers.map(l => `
+    <tr>
+      <td><span style="font-family:'Space Mono',monospace;font-weight:700">${l.locker_id}</span></td>
+      <td><span class="${l.status === 'available' ? 'badge-available' : 'badge-inuse'}">${l.status === 'available' ? '空き' : '使用中'}</span></td>
+      <td>${l.email || '—'}</td>
+    </tr>
+  `).join('');
+
+  // CSV
+  const csv = ['ロッカー番号,状態,メールアドレス',
+    ...lockers.map(l => `${l.locker_id},${l.status === 'available' ? '空き' : '使用中'},${l.email || ''}`)
+  ].join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv' });
+  const csvEl = document.getElementById('csv-download');
+  if (csvEl) csvEl.href = URL.createObjectURL(blob);
+}
+
+// =====================
+// Alert
+// =====================
+function showAlert(id, type, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.className = `alert ${type} show`;
+  el.textContent = msg;
+  setTimeout(() => el.classList.remove('show'), 4000);
+}
+
+// =====================
+// User actions
+// =====================
+async function rentLocker() {
+  const lockerId = document.getElementById('u-locker').value;
+  if (!lockerId || lockerId === '空きロッカーなし') return showAlert('alert-user', 'error', '空きロッカーがありません');
+
+  const btn = document.getElementById('btn-rent');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>登録中...';
+
+  const ok = await apiRent(lockerId, otpEmail);
+  btn.disabled = false;
+  btn.textContent = '利用開始';
+
+  if (ok.ok) {
+    showAlert('alert-user', 'success', `ロッカー ${lockerId} の登録が完了しました！`);
+    await fetchLockers();
+  } else {
+    showAlert('alert-user', 'error', ok.error || '登録に失敗しました。再試行してください。');
+  }
+}
+
+// =====================
+// User return action
+// =====================
+async function returnLocker() {
+  const lockerId = document.getElementById('u-ret-locker').value;
+
+  const btn = document.getElementById('btn-return');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>取り消し中...';
+
+  const ok = await apiReturn(lockerId, otpEmail);
+  btn.disabled = false;
+  btn.textContent = '登録を取り消す';
+
+  if (ok) {
+    showAlert('alert-user-return', 'success', `ロッカー ${lockerId} の登録を取り消しました`);
+    await fetchLockers();
+  } else {
+    showAlert('alert-user-return', 'error', '取り消しに失敗しました。自分が登録したロッカーのみ取り消せます。');
+  }
+}
+
+// =====================
+// Admin actions
+// =====================
+function setAdminAction(action) {
+  adminAction = action;
+  document.getElementById('admin-rent-form').style.display = action === 'rent' ? 'block' : 'none';
+  document.getElementById('admin-return-form').style.display = action === 'return' ? 'block' : 'none';
+  document.getElementById('action-rent-btn').style.background = action === 'rent' ? 'var(--accent)' : '';
+  document.getElementById('action-rent-btn').style.color = action === 'rent' ? '#fff' : '';
+  document.getElementById('action-return-btn').style.background = action === 'return' ? 'var(--danger)' : '';
+  document.getElementById('action-return-btn').style.color = action === 'return' ? '#fff' : '';
+}
+
+async function adminRent() {
+  const lockerId = document.getElementById('a-locker').value;
+  const targetEmail = document.getElementById('a-email').value.trim();
+  if (!targetEmail) return showAlert('alert-admin-rent', 'error', 'メールアドレスを入力してください');
+
+  const ok = await apiRent(lockerId, targetEmail);
+  if (ok.ok) {
+    showAlert('alert-admin-rent', 'success', `ロッカー ${lockerId} を登録しました`);
+    document.getElementById('a-email').value = '';
+    await fetchLockers();
+  } else {
+    showAlert('alert-admin-rent', 'error', ok.error || '登録に失敗しました');
+  }
+}
+
+async function adminReturn() {
+  const lockerId = document.getElementById('a-ret-locker').value;
+  const ok = await apiReturn(lockerId, otpEmail);
+  if (ok) {
+    showAlert('alert-admin-return', 'success', `ロッカー ${lockerId} を返却しました`);
+    await fetchLockers();
+  } else {
+    showAlert('alert-admin-return', 'error', '返却に失敗しました');
+  }
+}
+
+// =====================
+// Init
+// =====================
+showScreen('login');
+setInterval(() => { if (currentScreen !== 'login') fetchLockers(); }, 30000);
+</script>
+</body>
+</html>
